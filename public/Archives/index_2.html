@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Envoyer fiche client - Kleos uploader</title>
+  <style>
+    body { font-family: system-ui, Arial; padding: 20px; max-width: 720px; margin: auto; }
+    label { display:block; margin-top:10px; }
+    input, select { width:100%; padding:8px; margin-top:6px; box-sizing:border-box; }
+    .small { font-size:0.9em; color:#555; }
+    button { margin-top:12px; padding:10px 16px; }
+    .result { margin-top:12px; white-space:pre-wrap; background:#f4f4f4; padding:10px; border-radius:6px; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+  <h1>Création d'un contact</h1>
+
+  <form id="clientForm" enctype="multipart/form-data">
+    <!-- Type de contact -->
+    <label>Type de contact
+      <select name="contactType" id="contactTypeSelect" required>
+        <option value="">Choisir...</option>
+      </select>
+    </label>   
+
+    <!-- Nom / Société -->
+	<label id="labelNom">Nom <input name="nom" id="inputNom" required placeholder="Ex: Dupont"/></label>
+
+    <!-- Prénom -->
+    <label id="labelPrenom">Prénom <input name="prenom" id="inputPrenom" required placeholder="Ex: Jean"/></label>
+
+    <!-- Champs spécifiques personne morale -->
+    <label id="labelFormeJuridique" class="hidden">Forme juridique <input name="formeJuridique" placeholder="Ex: SARL, SAS, SA"/></label>
+    <label id="labelTva" class="hidden">Numéro de TVA <input name="numeroTVA" placeholder="Ex: FR12345678901"/></label>
+    <label id="labelSiret" class="hidden">Numéro de SIRET <input name="numeroSIRET" placeholder="Ex: 123 456 789 00012"/></label>
+
+    <!-- Email -->
+    <label>Email <input name="email" type="email" placeholder="Ex: jean.dupont@email.com"/></label>
+
+    <!-- Adresse -->
+    <label>Rue <input name="street" required placeholder="Ex: Rue de Test 1"/></label>
+    <label>Ville <input name="city" required placeholder="Ex: Bruxelles"/></label>
+    <label>Code postal <input name="postalCode" required placeholder="Ex: 1000"/></label>
+    <label>Pays
+      <select name="country" id="countrycodesSelect" required>
+        <option value="">Choisir...</option>
+      </select>
+    </label> 
+
+    <!-- Type dossier -->
+    <label>Type de dossier
+      <select name="typeDossier" id="caseTypesSelect" required>
+        <option value="">Chargement...</option>
+      </select>
+    </label>
+
+    <label>Documents à joindre <input type="file" name="documents"/></label>
+    <button type="submit">Envoyer</button>
+  </form>
+
+  <div class="small">Important: les appels réels se font via le serveur (sécurité).</div>
+  <div class="result" id="result"></div>
+
+  <script>
+    function loadContactTypes() {
+      const sel = document.getElementById('contactTypeSelect');
+      sel.innerHTML = '<option value="">Choisir...</option>';
+      [
+        { value: 'N', label: 'Personne physique (Natural)' },
+        { value: 'L', label: 'Personne morale (Legal)' }
+      ].forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.value;
+        opt.textContent = t.label;
+        sel.appendChild(opt);
+      });
+    }
+
+    // Gestion dynamique des champs
+    document.getElementById('contactTypeSelect').addEventListener('change', function() {
+      const isMoral = this.value === 'L';
+
+      document.getElementById('labelPrenom').classList.toggle('hidden', isMoral);
+      document.getElementById('inputPrenom').required = !isMoral;
+
+      document.getElementById('labelNom').textContent = isMoral ? "Nom de la société" : "Nom";
+      document.getElementById('labelNom').appendChild(document.getElementById('inputNom'));
+      document.getElementById('inputNom').placeholder = isMoral ? "Ex: Ma Super Entreprise" : "Ex: Dupont";
+
+      document.getElementById('labelFormeJuridique').classList.toggle('hidden', !isMoral);
+      document.getElementById('labelTva').classList.toggle('hidden', !isMoral);
+      document.getElementById('labelSiret').classList.toggle('hidden', !isMoral);
+    });
+
+    // Charger les pays et types de dossier (garde ton script existant ici)
+    loadContactTypes();
+    loadCountries();
+    loadCaseTypes();
+
+    // Soumission
+    document.getElementById('clientForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const resEl = document.getElementById('result');
+      resEl.textContent = 'Envoi en cours...';
+      const fd = new FormData(e.target);
+      try {
+        const r = await fetch('/api/submit-case', { method: 'POST', body: fd });
+        const json = await r.json();
+        resEl.textContent = JSON.stringify(json, null, 2);
+      } catch (err) {
+        resEl.textContent = 'Erreur: ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>

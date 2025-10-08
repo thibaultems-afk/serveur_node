@@ -1,0 +1,123 @@
+/* Body */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #eef2f7;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  align-items: center;
+  color: #333;
+}
+
+/* Form container (card) */
+form#clientForm {
+  background-color: #fff;
+  padding: 30px 25px;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 700px;
+  box-sizing: border-box;
+  transition: transform 0.2s;
+}
+
+form#clientForm:hover {
+  transform: translateY(-2px);
+}
+
+/* Form sections */
+form#clientForm label {
+  display: block;
+  margin-top: 20px;
+  font-weight: 500;
+  color: #374151;
+}
+
+form#clientForm input,
+form#clientForm select {
+  width: 100%;
+  padding: 12px 15px;
+  margin-top: 5px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+form#clientForm input:focus,
+form#clientForm select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+  outline: none;
+}
+
+/* Buttons */
+form#clientForm button {
+  margin-top: 25px;
+  width: 100%;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background-color: #3b82f6;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+form#clientForm button:hover {
+  background-color: #2563eb;
+  transform: translateY(-2px);
+}
+
+form#clientForm button:active {
+  transform: translateY(0);
+}
+
+/* Sections separation */
+form#clientForm label.section-title {
+  font-size: 1.1rem;
+  color: #1f2937;
+  margin-top: 30px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 5px;
+}
+
+/* Result area */
+.result {
+  margin-top: 25px;
+  padding: 15px;
+  border-radius: 12px;
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  font-family: monospace;
+  white-space: pre-wrap;
+  color: #111827;
+}
+
+/* Helper text */
+.small {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-top: 15px;
+}
+
+/* Hide dynamic fields */
+.hidden {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+  form#clientForm {
+    padding: 20px;
+  }
+  form#clientForm input,
+  form#clientForm select,
+  form#clientForm button {
+    font-size: 0.95rem;
+  }
+}

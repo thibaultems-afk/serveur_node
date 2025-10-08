@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Envoyer fiche client - Kleos uploader</title>
+  <link rel="stylesheet" href="style4.css">
+  <style>
+    :root { font-family: system-ui, Arial, sans-serif; color:#111; }
+    body { padding: 20px; max-width: 920px; margin: 20px auto; background: #fff; }
+    header { font-size: 1.6rem; font-weight:600; margin-bottom: 10px; }
+    form { background:#fafafa; padding:20px; border-radius:10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    label { display:block; margin-top:10px; font-size:0.95rem; }
+    input[type="text"], input[type="email"], select { width:100%; padding:10px; margin-top:6px; box-sizing:border-box; border:1px solid #ddd; border-radius:6px; }
+    input[type="file"]{ margin-top:6px; }
+    .small { font-size:0.9em; color:#555; margin-top:12px; }
+    button { margin-top:12px; padding:10px 16px; border-radius:8px; border:0; background:#007bff; color:white; cursor:pointer; }
+    .result { margin-top:12px; white-space:pre-wrap; background:#f4f4f4; padding:10px; border-radius:6px; min-height:40px; }
+    .hidden { display:none; }
+    .section-title { margin-top:18px; font-weight:700; }
+
+    /* Language switcher (top-right) */
+    .lang-container { position: fixed; top: 12px; right: 16px; z-index: 9999; font-size:14px; }
+    .lang-btn {
+      display:flex; align-items:center; gap:8px;
+      background: white; border:1px solid #ddd; padding:6px 10px; border-radius:8px; cursor:pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+    .lang-flag { width:32px; height:20px; object-fit:cover; display:inline-block; vertical-align:middle; border-radius:2px; }
+    .lang-dropdown { position: absolute; right: 0; margin-top:8px; background:white; border:1px solid #e6e6e6; box-shadow: 0 6px 18px rgba(0,0,0,0.06); border-radius:8px; overflow:hidden; display:none; min-width:200px; }
+    .lang-item { display:flex; gap:10px; align-items:center; padding:8px 10px; cursor:pointer; }
+    .lang-item:hover { background:#f7f7f7; }
+    .lang-code { font-weight:700; min-width:36px; }
+
+    /* inline svg flags container */
+    .flag-svg { width:32px; height:20px; display:inline-block; vertical-align:middle; }
+
+    /* small responsive tweak */
+    @media (max-width:600px){
+      body { padding:12px; }
+      .lang-container { top:8px; right:8px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Language switcher top-right (SVG flags inline for self-contained file) -->
+  <div class="lang-container" id="langContainer" aria-hidden="false">
+    <div class="lang-btn" id="langBtn" tabindex="0" aria-haspopup="true" aria-expanded="false">
+      <span id="currentFlag" class="flag-svg" aria-hidden="true">
+        <!-- default FR inline SVG -->
+        <svg width="32" height="20" viewBox="0 0 3 2" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+          <rect width="1" height="2" x="0" fill="#0055A4"/>
+          <rect width="1" height="2" x="1" fill="#FFFFFF"/>
+          <rect width="1" height="2" x="2" fill="#EF4135"/>
+        </svg>
+      </span>
+      <span id="currentCode">FR</span>
+      <svg width="12" height="12" viewBox="0 0 20 20" style="opacity:0.7"><path d="M5 7l5 5 5-5" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <div class="lang-dropdown" id="langDropdown" role="menu" aria-label="Choisir la langue">
+      <div class="lang-item" data-lang="en" role="menuitem">
+        <span class="flag-svg" aria-hidden="true">
+          <!-- UK - simplified Union Jack (approximation) -->
+          <svg width="32" height="20" viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <rect width="60" height="30" fill="#012169"/>
+            <g fill="#fff">
+              <rect x="0" y="12" width="60" height="6"/>
+              <rect x="27" y="0" width="6" height="30"/>
+            </g>
+            <g fill="#C8102E">
+              <rect x="0" y="13" width="60" height="4"/>
+              <rect x="28" y="0" width="4" height="30"/>
+            </g>
+            <!-- diagonals (white) -->
+            <g stroke="#fff" stroke-width="6">
+              <path d="M0 0 L60 30"/>
+              <path d="M60 0 L0 30"/>
+            </g>
+            <!-- diagonals red -->
+            <g stroke="#C8102E" stroke-width="3">
+              <path d="M0 0 L60 30"/>
+              <path d="M60 0 L0 30"/>
+            </g>
+          </svg>
+        </span>
+        <span class="lang-code">EN</span><span>English</span>
+      </div>
+
+      <div class="lang-item" data-lang="fr" role="menuitem">
+        <span class="flag-svg" aria-hidden="true">
+          <!-- France -->
+          <svg width="32" height="20" viewBox="0 0 3 2" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <rect width="1" height="2" x="0" fill="#0055A4"/>
+            <rect width="1" height="2" x="1" fill="#FFFFFF"/>
+            <rect width="1" height="2" x="2" fill="#EF4135"/>
+          </svg>
+        </span>
+        <span class="lang-code">FR</span><span>Français</span>
+      </div>
+
+      <div class="lang-item" data-lang="nl" role="menuitem">
+        <span class="flag-svg" aria-hidden="true">
+          <!-- Belgium (using vertical black-yellow-red like BE) -->
+          <svg width="32" height="20" viewBox="0 0 3 2" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <rect width="1" height="2" x="0" fill="#000000"/>
+            <rect width="1" height="2" x="1" fill="#FFD100"/>
+            <rect width="1" height="2" x="2" fill="#EF3340"/>
+          </svg>
+        </span>
+        <span class="lang-code">NL</span><span>Nederlands</span>
+      </div>
+
+      <div class="lang-item" data-lang="es" role="menuitem">
+        <span class="flag-svg" aria-hidden="true">
+          <!-- Spain simplified (red-yellow-red) -->
+          <svg width="32" height="20" viewBox="0 0 3 2" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <rect width="3" height="2" fill="#C60B1E"/>
+            <rect x="0" y="0.5" width="3" height="1" fill="#FFC400"/>
+          </svg>
+        </span>
+        <span class="lang-code">ES</span><span>Español</span>
+      </div>
+
+      <div class="lang-item" data-lang="it" role="menuitem">
+        <span class="flag-svg" aria-hidden="true">
+          <!-- Italy -->
+          <svg width="32" height="20" viewBox="0 0 3 2" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <rect width="1" height="2" x="0" fill="#009246"/>
+            <rect width="1" height="2" x="1" fill="#FFFFFF"/>
+            <rect width="1" height="2" x="2" fill="#CE2B37"/>
+          </svg>
+        </span>
+        <span class="lang-code">IT</span><span>Italiano</span>
+      </div>
+    </div>
+  </div>
+
+  <header id="pageTitle">Création d'un contact</header>
+
+  <form id="clientForm" enctype="multipart/form-data">
+    <!-- Informations du contact -->
+    <label class="section-title" id="lblContactInfo">Informations du contact</label>
+
+    <label id="labelContactType">Type de contact
+      <select name="contactType" id="contactTypeSelect" required>
+        <option value="">Choisir...</option>
+      </select>
+    </label>
+
+    <label id="labelgender" class="hidden">Genre
+      <select name="gender" id="genderSelect" required>
+        <option value="">Choisir...</option>
+      </select>
+    </label>
+
+    <!-- Nom / Société -->
+    <label id="labelNom">Nom <input name="nom" id="inputNom" required placeholder="Ex: Dupont" value="Dupont"/></label>
+
+    <!-- Prénom -->
+    <label id="labelPrenom" class="hidden">Prénom <input name="prenom" id="inputPrenom" placeholder="Ex: Jean" value="Bertrand"/></label>
+
+    <!-- Champs spécifiques personne morale -->
+    <label id="labelFormeJuridique" class="hidden">Forme juridique <input name="formeJuridique" placeholder="Ex: SARL, SAS, SA" value="SA"/></label>
+    <label id="labelTva" class="hidden">Numéro de TVA <input name="numintra" placeholder="Ex: FR12345678901" value="FR "/></label>
+    <label id="labelSiret" class="hidden">Numéro de SIRET <input name="numeroSIRET" placeholder="Ex: 123 456 789 00012" value="123 456 789 00012"/></label>
+
+    <!-- Email -->
+    <label id="labelEmail">Email <input name="email" type="email" placeholder="Ex: jean.dupont@email.com" value="jean.dupont@gmail.com"/></label>
+    <label id="labelPhone">Téléphone <input name="phone" type="phone" placeholder="Ex: 06.01.02.03.04" value="06.01.02.03.04"/></label>
+    <label class="section-title" id="lblAddress">Adresse</label>
+    <label id="labelStreet">Rue <input name="street" required placeholder="Ex: Rue de Test 1" value="Rue de Test 1"/></label>
+    <label id="labelCity">Ville <input name="city" required placeholder="Ex: Bruxelles"  value="PARIS"/></label>
+    <label id="labelPostal">Code postal <input name="postalCode" required placeholder="Ex: 75001" value="75001"/></label>
+    <label id="labelCountry">Pays
+      <select name="country" id="countrycodesSelect" required>
+        <option value="">Choisir...</option>
+      </select>
+    </label>
+
+    <!-- Informations du dossier -->
+    <label class="section-title" id="lblCase">Dossier</label>
+    <label id="labelCaseType">Type de dossier
+      <select name="typeId" id="caseTypesSelect" required>
+        <option value="">Chargement...</option>
+      </select>
+    </label>
+
+    <label id="labelDocuments">Documents à joindre <input type="file" name="documents" multiple/></label>
+    <button type="submit" id="sendBtn">Envoyer</button>
+  </form>
+
+  <div class="small" id="note">Important: les appels réels se font via le serveur (sécurité).</div>
+  <div class="result" id="result"></div>
+
+  <script>
+    // Traductions pour FR / EN / NL / ES / IT
+    const translations = {
+      fr: {
+        pageTitle: "Création d'un contact",
+        contactInfo: "Informations du contact",
+        contactType: "Type de contact",
+        choose: "Choisir...",
+        loading: "Chargement...",
+        gender: "Genre",
+        genders: { M: "Monsieur", F: "Madame", U: "Autre" },
+        contactTypes: { N: "Personne physique", L: "Personne morale" },
+        nom: "Nom", prenom: "Prénom", formeJuridique: "Forme juridique", tva: "Numéro de TVA", siret: "Numéro de SIRET",
+        email: "Email", phone: "Téléphone", address: "Adresse", street: "Rue", city: "Ville", postalCode: "Code postal", country: "Pays",
+        dossier: "Dossier", caseType: "Type de dossier", documents: "Documents à joindre", send: "Envoyer", sending: "Envoi en cours...",
+        sentResultPrefix: "Réponse serveur :", errorPrefix: "Erreur :", serverNote: "Important: les appels réels se font via le serveur (sécurité)."
+      },
+      en: {
+        pageTitle: "Create a contact", contactInfo: "Contact information", contactType: "Contact type", choose: "Choose...", loading: "Loading...",
+        gender: "Gender", genders: { M: "Mr.", F: "Mrs.", U: "Other" }, contactTypes: { N: "Natural person", L: "Legal entity" },
+        nom: "Name", prenom: "First name", formeJuridique: "Legal form", tva: "VAT number", siret: "SIRET number",
+        email: "Email", phone: "Phone", address: "Address", street: "Street", city: "City", postalCode: "Postal code", country: "Country",
+        dossier: "Case", caseType: "Case type", documents: "Files to attach", send: "Send", sending: "Sending...",
+        sentResultPrefix: "Server response:", errorPrefix: "Error:", serverNote: "Important: real calls are made via the server (security)."
+      },
+      nl: {
+        pageTitle: "Contact aanmaken", contactInfo: "Contactgegevens", contactType: "Contacttype", choose: "Kiezen...", loading: "Laden...",
+        gender: "Geslacht", genders: { M: "De heer", F: "Mevrouw", U: "Anders" }, contactTypes: { N: "Natuurlijk persoon", L: "Rechtspersoon" },
+        nom: "Naam", prenom: "Voornaam", formeJuridique: "Juridische vorm", tva: "BTW-nummer", siret: "SIRET-nummer",
+        email: "E-mail", phone: "Telefoon", address: "Adres", street: "Straat", city: "Stad", postalCode: "Postcode", country: "Land",
+        dossier: "Dossier", caseType: "Type dossier", documents: "Bestanden bijvoegen", send: "Verzenden", sending: "Bezig met verzenden...",
+        sentResultPrefix: "Server antwoord:", errorPrefix: "Fout:", serverNote: "Belangrijk: echte oproepen worden via de server gedaan (beveiliging)."
+      },
+      es: {
+        pageTitle: "Creación de un contacto", contactInfo: "Información del contacto", contactType: "Tipo de contacto", choose: "Elegir...", loading: "Cargando...",
+        gender: "Género", genders: { M: "Señor", F: "Señora", U: "Otro" }, contactTypes: { N: "Persona física", L: "Persona jurídica" },
+        nom: "Apellido", prenom: "Nombre", formeJuridique: "Forma jurídica", tva: "Número de IVA", siret: "Número SIRET",
+        email: "Correo", phone: "Teléfono", address: "Dirección", street: "Calle", city: "Ciudad", postalCode: "Código postal", country: "País",
+        dossier: "Expediente", caseType: "Tipo de expediente", documents: "Documentos adjuntos", send: "Enviar", sending: "Enviando...",
+        sentResultPrefix: "Respuesta del servidor:", errorPrefix: "Error:", serverNote: "Importante: las llamadas reales se hacen a través del servidor (seguridad)."
+      },
+      it: {
+        pageTitle: "Creazione di un contatto", contactInfo: "Informazioni di contatto", contactType: "Tipo di contatto", choose: "Scegli...", loading: "Caricamento...",
+        gender: "Genere", genders: { M: "Signor", F: "Signora", U: "Altro" }, contactTypes: { N: "Persona fisica", L: "Persona giuridica" },
+        nom: "Cognome", prenom: "Nome", formeJuridique: "Forma giuridica", tva: "Numero di partita IVA", siret: "Numero SIRET",
+        email: "Email", phone: "Telefono", address: "Indirizzo", street: "Via", city: "Città", postalCode: "CAP", country: "Paese",
+        dossier: "Pratica", caseType: "Tipo di pratica", documents: "Documenti da allegare", send: "Invia", sending: "Invio in corso...",
+        sentResultPrefix: "Risposta del server:", errorPrefix: "Errore:", serverNote: "Importante: le chiamate reali vengono effettuate tramite il server (sicurezza)."
+      }
+    };
+
+    // Current language (default FR)
+    let currentLang = 'fr';
+
+    // UTIL: update visible texts according to currentLang
+    function updateTexts() {
+      const t = translations[currentLang];
+
+      // Page & static texts
+      document.getElementById('pageTitle').textContent = t.pageTitle || '';
+      document.getElementById('lblContactInfo').textContent = t.contactInfo || '';
+      // update labels (we set the text node that precedes child input/select)
+      setLabelText('labelContactType', t.contactType);
+      setLabelText('labelgender', t.gender);
+      setLabelText('labelNom', t.nom);
+      setLabelText('labelPrenom', t.prenom);
+      setLabelText('labelFormeJuridique', t.formeJuridique);
+      setLabelText('labelTva', t.tva);
+      setLabelText('labelSiret', t.siret);
+      setLabelText('labelEmail', t.email);
+      setLabelText('labelPhone', t.phone);
+      document.getElementById('lblAddress').textContent = t.address || '';
+      setLabelText('labelStreet', t.street);
+      setLabelText('labelCity', t.city);
+      setLabelText('labelPostal', t.postalCode);
+      setLabelText('labelCountry', t.country);
+      document.getElementById('lblCase').textContent = t.dossier || '';
+      setLabelText('labelCaseType', t.caseType);
+      setLabelText('labelDocuments', t.documents);
+      document.getElementById('sendBtn').textContent = t.send || 'Send';
+      document.getElementById('note').textContent = t.serverNote || '';
+
+      // placeholders
+      document.getElementById('inputNom').placeholder = (currentLang === 'fr' ? 'Ex: Dupont' : (currentLang === 'en' ? 'Ex: Smith' : 'Ex: Dupont'));
+      document.getElementById('inputPrenom').placeholder = (currentLang === 'fr' ? 'Ex: Jean' : 'Ex: John');
+      const fj = document.getElementById('labelFormeJuridique').querySelector('input');
+      if (fj) fj.placeholder = (currentLang === 'fr' ? 'Ex: SARL, SAS, SA' : 'Ex: LLC, Ltd, SA');
+      const tvaI = document.getElementById('labelTva').querySelector('input');
+      if (tvaI) tvaI.placeholder = 'Ex: FR12345678901';
+      const siretI = document.getElementById('labelSiret').querySelector('input');
+      if (siretI) siretI.placeholder = (currentLang === 'fr' ? 'Ex: 123 456 789 00012' : 'Ex: 12345678900012');
+      document.getElementById('labelEmail').querySelector('input').placeholder = (currentLang === 'fr' ? 'Ex: jean.dupont@email.com' : 'Ex: john.smith@email.com');
+      document.getElementById('labelPhone').querySelector('input').placeholder = (currentLang === 'fr' ? 'Ex: 06.01.02.03.04' : 'Ex: +33 6 01 02 03 04');
+      document.getElementById('labelStreet').querySelector('input').placeholder = (currentLang === 'fr' ? 'Ex: Rue de Test 1' : 'Ex: 1 Test Street');
+      document.getElementById('labelCity').querySelector('input').placeholder = (currentLang === 'fr' ? 'Ex: Bruxelles' : 'Ex: London');
+      document.getElementById('labelPostal').querySelector('input').placeholder = (currentLang === 'fr' ? 'Ex: 75001' : 'Ex: 10001');
+
+      // selects: contact types & genders (rebuild)
+      populateContactTypes();
+      populateGenders();
+
+      // update first option of selects that are placeholders
+      const countrySel = document.getElementById('countrycodesSelect');
+      if (countrySel && countrySel.options.length > 0) countrySel.options[0].textContent = t.choose || '';
+      const caseSel = document.getElementById('caseTypesSelect');
+      if (caseSel && caseSel.options.length > 0 && caseSel.options[0].value === '') {
+        caseSel.options[0].textContent = t.loading || '';
+      }
+    }
+
+    function setLabelText(id, text) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      // first text node before child element
+      // if label contains textNode then child (input/select), we replace the first textNode
+      for (let i=0;i<el.childNodes.length;i++){
+        const n = el.childNodes[i];
+        if (n.nodeType === Node.TEXT_NODE) {
+          n.textContent = (text ? text + ' ' : '');
+          return;
+        }
+      }
+      // fallback: set textContent prefix
+      el.childNodes[0] && (el.childNodes[0].textContent = (text ? text + ' ' : ''));
+    }
+
+    // Populate contact types (N / L) with translations
+    function populateContactTypes() {
+      const sel = document.getElementById('contactTypeSelect');
+      const t = translations[currentLang];
+      sel.innerHTML = '';
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = t.choose || 'Choose...';
+      sel.appendChild(placeholder);
+
+      const types = [
+        { value: 'N', label: (t.contactTypes && t.contactTypes.N) || 'Person' },
+        { value: 'L', label: (t.contactTypes && t.contactTypes.L) || 'Company' }
+      ];
+      types.forEach(ti => {
+        const opt = document.createElement('option');
+        opt.value = ti.value;
+        opt.textContent = ti.label;
+        sel.appendChild(opt);
+      });
+    }
+
+    // Populate genders (M / F / U) with translations
+    function populateGenders() {
+      const sel = document.getElementById('genderSelect');
+      const t = translations[currentLang];
+      sel.innerHTML = '';
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = t.choose || 'Choose...';
+      sel.appendChild(placeholder);
+
+      const genders = [
+        { value: 'M', label: (t.genders && t.genders.M) || 'M' },
+        { value: 'F', label: (t.genders && t.genders.F) || 'F' },
+        { value: 'U', label: (t.genders && t.genders.U) || 'Other' }
+      ];
+      genders.forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g.value;
+        opt.textContent = g.label;
+        sel.appendChild(opt);
+      });
+    }
+
+    // Load countries from server (kept as-is)
+    async function loadCountries() {
+      const sel = document.getElementById('countrycodesSelect');
+      sel.innerHTML = '';
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = translations[currentLang].choose || 'Choose...';
+      sel.appendChild(placeholder);
+
+      try {
+        const res = await fetch('/api/countries');
+        const countries = await res.json();
+        countries.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.code;
+          opt.textContent = `${c.code} - ${c.name}`; // kept as-is (not translated)
+          sel.appendChild(opt);
+        });
+      } catch (err) {
+        sel.innerHTML = '';
+        const errOpt = document.createElement('option');
+        errOpt.value = '';
+        errOpt.textContent = (translations[currentLang].errorPrefix || 'Erreur :') + ' Erreur de chargement';
+        sel.appendChild(errOpt);
+        console.error(err);
+      }
+    }
+
+    // Load case types from server (kept as-is)
+    async function loadCaseTypes() {
+      const sel = document.getElementById('caseTypesSelect');
+      sel.innerHTML = '';
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = translations[currentLang].loading || 'Loading...';
+      sel.appendChild(placeholder);
+
+      try {
+        const r = await fetch('/api/case-types');
+        const json = await r.json();
+        sel.innerHTML = '';
+        if (Array.isArray(json) && json.length) {
+          json.forEach(ct => {
+            const opt = document.createElement('option');
+            opt.value = ct.id;
+            opt.textContent = ct.name;
+            sel.appendChild(opt);
+          });
+        } else {
+          const noneOpt = document.createElement('option');
+          noneOpt.value = '';
+          noneOpt.textContent = (currentLang === 'fr') ? 'Aucun type disponible' : translations[currentLang].loading;
+          sel.appendChild(noneOpt);
+        }
+      } catch (e) {
+        sel.innerHTML = '';
+        const errOpt = document.createElement('option');
+        errOpt.value = '';
+        errOpt.textContent = (translations[currentLang].errorPrefix || 'Erreur :') + ' Erreur de chargement';
+        sel.appendChild(errOpt);
+      }
+    }
+
+    // Initialize contact types and genders, countries, case types
+    function initData() {
+      populateContactTypes();
+      populateGenders();
+      loadCountries();
+      loadCaseTypes();
+    }
+
+    // handle contactType change to show/hide fields
+    document.getElementById('contactTypeSelect').addEventListener('change', function() {
+      const isMoral = this.value === 'L';
+
+      const prenomLabel = document.getElementById('labelPrenom');
+      prenomLabel.classList.toggle('hidden', isMoral);
+      document.getElementById('inputPrenom').required = !isMoral;
+
+      const genderLabel = document.getElementById('labelgender');
+      genderLabel.classList.toggle('hidden', isMoral);
+      document.getElementById('genderSelect').required = !isMoral;
+
+      const labelNom = document.getElementById('labelNom');
+      const inputNom = document.getElementById('inputNom');
+      const t = translations[currentLang];
+      labelNom.childNodes[0].textContent = isMoral ? ((currentLang === 'en') ? 'Company name ' : (t.nom + ' ')) : ((t.nom || 'Nom') + ' ');
+      inputNom.placeholder = isMoral ? ((currentLang === 'en') ? "Ex: ACME Ltd" : "Ex: Nom de l'entreprise") : (currentLang === 'en' ? 'Ex: Smith' : 'Ex: Dupont');
+      if (isMoral) inputNom.value = (currentLang === 'en') ? "ACME Ltd" : "Myriam et associé";
+      else inputNom.value = (currentLang === 'en') ? "Smith" : "Dupont";
+
+      document.getElementById('labelFormeJuridique').classList.toggle('hidden', !isMoral);
+      document.getElementById('labelTva').classList.toggle('hidden', !isMoral);
+      document.getElementById('labelSiret').classList.toggle('hidden', !isMoral);
+    });
+
+    // Form submission
+    document.getElementById('clientForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const fd = new FormData(form);
+
+      const resEl = document.getElementById('result');
+      resEl.textContent = translations[currentLang].sending || 'Sending...';
+
+      try {
+        const r = await fetch('/api/submit-case', { method: 'POST', body: fd });
+        const json = await r.json();
+        resEl.textContent = (translations[currentLang].sentResultPrefix || 'Server response:') + '\n' + JSON.stringify(json, null, 2);
+      } catch (err) {
+        resEl.textContent = (translations[currentLang].errorPrefix || 'Error:') + ' ' + err.message;
+      }
+    });
+
+    // LANGUAGE SWITCHER UI handling
+    const langBtn = document.getElementById('langBtn');
+    const langDropdown = document.getElementById('langDropdown');
+    const langContainer = document.getElementById('langContainer');
+    const currentFlag = document.getElementById('currentFlag');
+    const currentCode = document.getElementById('currentCode');
+
+    langBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const expanded = langDropdown.style.display === 'block';
+      langDropdown.style.display = expanded ? 'none' : 'block';
+      langBtn.setAttribute('aria-expanded', (!expanded).toString());
+    });
+
+    // close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!langContainer.contains(e.target)) {
+        langDropdown.style.display = 'none';
+        langBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // update current flag svg (clone from selected item)
+    function setFlagFromItem(item) {
+      const svg = item.querySelector('svg');
+      if (!svg) return;
+      // replace innerHTML of currentFlag with selected svg markup
+      currentFlag.innerHTML = svg.outerHTML;
+    }
+
+    // language selection from dropdown
+    document.querySelectorAll('#langDropdown .lang-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const lang = item.getAttribute('data-lang');
+        setLanguage(lang);
+        // update current flag
+        setFlagFromItem(item);
+        langDropdown.style.display = 'none';
+      });
+    });
+
+    // set language function
+    function setLanguage(lang) {
+      if (!translations[lang]) return;
+      currentLang = lang;
+      // update current code visuals
+      currentCode.textContent = lang.toUpperCase();
+      // update texts & reload any data if necessary
+      updateTexts();
+      // reload countries & case types so placeholders match language
+      loadCountries();
+      loadCaseTypes();
+    }
+
+    // On load: set default language FR then init data
+    (function() {
+      // set the currentFlag to the FR svg explicitly (already there by default)
+      setLanguage('fr'); // FR by default as requested
+      initData();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+/* Style général */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9fafb;
+  padding: 20px;
+  max-width: 720px;
+  margin: auto;
+  color: #333;
+}
+
+/* Titres */
+h1 {
+  text-align: center;
+  color: #1f2937;
+  margin-bottom: 30px;
+  font-size: 1.8rem;
+}
+
+/* Labels et champs */
+label {
+  display: block;
+  margin-top: 15px;
+  font-weight: 500;
+}
+
+input, select {
+  width: 100%;
+  padding: 12px 15px;
+  margin-top: 5px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-size: 1rem;
+}
+
+input:focus, select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  outline: none;
+}
+
+/* Bouton */
+button {
+  margin-top: 20px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  background-color: #3b82f6;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+button:hover {
+  background-color: #2563eb;
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Champ fichier */
+input[type="file"] {
+  padding: 5px 3px;
+}
+
+/* Info et résultats */
+.small {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-top: 15px;
+}
+
+.result {
+  margin-top: 20px;
+  white-space: pre-wrap;
+  background: #f3f4f6;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-family: monospace;
+  color: #111827;
+}
+
+/* Masquer les éléments dynamiques */
+.hidden {
+  display: none;
+}
+
+/* Responsive pour petits écrans */
+@media (max-width: 500px) {
+  input, select, button {
+    font-size: 0.95rem;
+  }
+}

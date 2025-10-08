@@ -1,0 +1,401 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Envoyer fiche client - Kleos uploader</title>
+  <style>
+    body { font-family: system-ui, Arial; padding: 20px; max-width: 720px; margin: auto; }
+    label { display:block; margin-top:10px; }
+    input, select { width:100%; padding:8px; margin-top:6px; box-sizing:border-box; }
+    .small { font-size:0.9em; color:#555; }
+    button { margin-top:12px; padding:10px 16px; }
+    .result { margin-top:12px; white-space:pre-wrap; background:#f4f4f4; padding:10px; border-radius:6px; }
+	.hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Création d'un contact</h1>
+
+  <form id="clientForm" enctype="multipart/form-data">
+    <!-- Informations du contact -->
+    <label>Type de contact
+      <select name="contactType" id="contactTypeSelect" required>
+        <option value="">Choisir...</option>
+      </select>
+    </label>   
+
+	<!-- Nom / Société -->
+	<label id="labelNom">Nom <input name="nom" id="inputNom" required placeholder="Ex: Dupont"/></label>
+
+    <!-- Prénom -->
+    <label id="labelPrenom">Prénom <input name="prenom" id="inputPrenom" required placeholder="Ex: Jean"/></label>
+
+    <!-- Champs spécifiques personne morale -->
+    <label id="labelFormeJuridique">Forme juridique <input name="formeJuridique" placeholder="Ex: SARL, SAS, SA"/></label>
+    <label id="labelTva">Numéro de TVA <input name="numeroTVA" placeholder="Ex: FR12345678901"/></label>
+    <label id="labelSiret">Numéro de SIRET <input name="numeroSIRET" placeholder="Ex: 123 456 789 00012"/></label>
+
+    <!-- Email -->
+    <label>Email <input name="email" type="email" placeholder="Ex: jean.dupont@email.com"/></label>
+
+    <label>Rue <input name="street" required placeholder="Ex: Rue de Test 1"/></label>
+    <label>Ville <input name="city" required placeholder="Ex: Bruxelles"/></label>
+    <label>Code postal <input name="postalCode" required placeholder="Ex: 1000"/></label>
+    <label>Pays
+      <select name="country" id="countrycodesSelect" required>
+        <option value="">Choisir...</option>
+      </select>
+    </label> 
+	<!--<label>Pays <input name="country" required placeholder="Ex: FRANCE"/></label>-->
+
+    <!-- Informations du dossier -->
+    <label>Type de dossier
+      <select name="typeDossier" id="caseTypesSelect" required>
+        <option value="">Chargement...</option>
+      </select>
+    </label>
+
+    <label>Documents à joindre <input type="file" name="documents"/></label>
+    <button type="submit">Envoyer</button>
+  </form>
+
+  <div class="small">Important: les appels réels se font via le serveur (sécurité).</div>
+  <div class="result" id="result"></div>
+
+  <script>
+    // Charger les types de contact (N=Natural, L=Legal)
+    function loadContactTypes() {
+      const sel = document.getElementById('contactTypeSelect');
+      sel.innerHTML = '<option value="">Choisir...</option>';
+      const types = [
+        { value: 'N', label: 'Personne physique (Natural)' },
+        { value: 'L', label: 'Personne morale (Legal)' }
+      ];
+      types.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.value;
+        opt.textContent = t.label;
+        sel.appendChild(opt);
+      });
+    }
+
+	document.getElementById('contactTypeSelect').addEventListener('change', function() {
+	  const isMoral = this.value === 'L';
+
+	  // Prénom
+	  document.getElementById('labelPrenom').style.display = isMoral ? 'none' : 'block';
+	  document.getElementById('inputPrenom').required = !isMoral;
+
+	  // Nom / Société
+	  const labelNom = document.getElementById('labelNom');
+	  const inputNom = document.getElementById('inputNom');
+	  labelNom.childNodes[0].textContent = isMoral ? "Nom de la société " : "Nom ";
+	  inputNom.placeholder = isMoral ? "Ex: Ma Super Entreprise" : "Ex: Dupont";
+
+	  // Champs spécifiques personne morale
+	  document.getElementById('labelFormeJuridique').style.display = isMoral ? 'block' : 'none';
+	  document.getElementById('labelTva').style.display = isMoral ? 'block' : 'none';
+	  document.getElementById('labelSiret').style.display = isMoral ? 'block' : 'none';
+	});
+
+// Charger les pays dans le select
+function loadCountries() {
+  const sel = document.getElementById('countrycodesSelect');
+  sel.innerHTML = '<option value="">Choisir...</option>';
+
+  const countries = [
+  { code: 'AF', name: 'Afghanistan' },
+  { code: 'AL', name: 'Albanie' },
+  { code: 'DZ', name: 'Algérie' },
+  { code: 'AS', name: 'Samoa américaines' },
+  { code: 'AD', name: 'Andorre' },
+  { code: 'AO', name: 'Angola' },
+  { code: 'AI', name: 'Anguilla' },
+  { code: 'AQ', name: 'Antarctique' },
+  { code: 'AG', name: 'Antigua-et-Barbuda' },
+  { code: 'AR', name: 'Argentine' },
+  { code: 'AM', name: 'Arménie' },
+  { code: 'AW', name: 'Aruba' },
+  { code: 'AU', name: 'Australie' },
+  { code: 'AT', name: 'Autriche' },
+  { code: 'AZ', name: 'Azerbaïdjan' },
+  { code: 'BS', name: 'Bahamas' },
+  { code: 'BH', name: 'Bahreïn' },
+  { code: 'BD', name: 'Bangladesh' },
+  { code: 'BB', name: 'Barbade' },
+  { code: 'BY', name: 'Biélorussie' },
+  { code: 'BE', name: 'Belgique' },
+  { code: 'BZ', name: 'Belize' },
+  { code: 'BJ', name: 'Bénin' },
+  { code: 'BM', name: 'Bermudes' },
+  { code: 'BT', name: 'Bhoutan' },
+  { code: 'BO', name: 'Bolivie' },
+  { code: 'BA', name: 'Bosnie-Herzégovine' },
+  { code: 'BW', name: 'Botswana' },
+  { code: 'BR', name: 'Brésil' },
+  { code: 'BN', name: 'Brunei' },
+  { code: 'BG', name: 'Bulgarie' },
+  { code: 'BF', name: 'Burkina Faso' },
+  { code: 'BI', name: 'Burundi' },
+  { code: 'CV', name: 'Cap-Vert' },
+  { code: 'KH', name: 'Cambodge' },
+  { code: 'CM', name: 'Cameroun' },
+  { code: 'CA', name: 'Canada' },
+  { code: 'KY', name: 'Îles Caïmans' },
+  { code: 'CF', name: 'République centrafricaine' },
+  { code: 'TD', name: 'Tchad' },
+  { code: 'CL', name: 'Chili' },
+  { code: 'CN', name: 'Chine' },
+  { code: 'CX', name: 'Île Christmas' },
+  { code: 'CC', name: 'Îles Cocos' },
+  { code: 'CO', name: 'Colombie' },
+  { code: 'KM', name: 'Comores' },
+  { code: 'CG', name: 'Congo' },
+  { code: 'CD', name: 'République démocratique du Congo' },
+  { code: 'CK', name: 'Îles Cook' },
+  { code: 'CR', name: 'Costa Rica' },
+  { code: 'CI', name: 'Côte d’Ivoire' },
+  { code: 'HR', name: 'Croatie' },
+  { code: 'CU', name: 'Cuba' },
+  { code: 'CY', name: 'Chypre' },
+  { code: 'CZ', name: 'République tchèque' },
+  { code: 'DK', name: 'Danemark' },
+  { code: 'DJ', name: 'Djibouti' },
+  { code: 'DM', name: 'Dominique' },
+  { code: 'DO', name: 'République dominicaine' },
+  { code: 'EC', name: 'Équateur' },
+  { code: 'EG', name: 'Égypte' },
+  { code: 'SV', name: 'Salvador' },
+  { code: 'GQ', name: 'Guinée équatoriale' },
+  { code: 'ER', name: 'Érythrée' },
+  { code: 'EE', name: 'Estonie' },
+  { code: 'SZ', name: 'Eswatini' },
+  { code: 'ET', name: 'Éthiopie' },
+  { code: 'FK', name: 'Îles Falkland' },
+  { code: 'FO', name: 'Îles Féroé' },
+  { code: 'FJ', name: 'Fidji' },
+  { code: 'FI', name: 'Finlande' },
+  { code: 'FR', name: 'France' },
+  { code: 'GF', name: 'Guyane française' },
+  { code: 'PF', name: 'Polynésie française' },
+  { code: 'TF', name: 'Terres australes françaises' },
+  { code: 'GA', name: 'Gabon' },
+  { code: 'GM', name: 'Gambie' },
+  { code: 'GE', name: 'Géorgie' },
+  { code: 'DE', name: 'Allemagne' },
+  { code: 'GH', name: 'Ghana' },
+  { code: 'GI', name: 'Gibraltar' },
+  { code: 'GR', name: 'Grèce' },
+  { code: 'GL', name: 'Groenland' },
+  { code: 'GD', name: 'Grenade' },
+  { code: 'GP', name: 'Guadeloupe' },
+  { code: 'GU', name: 'Guam' },
+  { code: 'GT', name: 'Guatemala' },
+  { code: 'GG', name: 'Guernesey' },
+  { code: 'GN', name: 'Guinée' },
+  { code: 'GW', name: 'Guinée-Bissau' },
+  { code: 'GY', name: 'Guyana' },
+  { code: 'HT', name: 'Haïti' },
+  { code: 'HN', name: 'Honduras' },
+  { code: 'HK', name: 'Hong Kong' },
+  { code: 'HU', name: 'Hongrie' },
+  { code: 'IS', name: 'Islande' },
+  { code: 'IN', name: 'Inde' },
+  { code: 'ID', name: 'Indonésie' },
+  { code: 'IR', name: 'Iran' },
+  { code: 'IQ', name: 'Irak' },
+  { code: 'IE', name: 'Irlande' },
+  { code: 'IM', name: 'Île de Man' },
+  { code: 'IL', name: 'Israël' },
+  { code: 'IT', name: 'Italie' },
+  { code: 'JM', name: 'Jamaïque' },
+  { code: 'JP', name: 'Japon' },
+  { code: 'JE', name: 'Jersey' },
+  { code: 'JO', name: 'Jordanie' },
+  { code: 'KZ', name: 'Kazakhstan' },
+  { code: 'KE', name: 'Kenya' },
+  { code: 'KI', name: 'Kiribati' },
+  { code: 'KW', name: 'Koweït' },
+  { code: 'KG', name: 'Kirghizistan' },
+  { code: 'LA', name: 'Laos' },
+  { code: 'LV', name: 'Lettonie' },
+  { code: 'LB', name: 'Liban' },
+  { code: 'LS', name: 'Lesotho' },
+  { code: 'LR', name: 'Libéria' },
+  { code: 'LY', name: 'Libye' },
+  { code: 'LI', name: 'Liechtenstein' },
+  { code: 'LT', name: 'Lituanie' },
+  { code: 'LU', name: 'Luxembourg' },
+  { code: 'MO', name: 'Macao' },
+  { code: 'MG', name: 'Madagascar' },
+  { code: 'MW', name: 'Malawi' },
+  { code: 'MY', name: 'Malaisie' },
+  { code: 'MV', name: 'Maldives' },
+  { code: 'ML', name: 'Mali' },
+  { code: 'MT', name: 'Malte' },
+  { code: 'MH', name: 'Îles Marshall' },
+  { code: 'MQ', name: 'Martinique' },
+  { code: 'MR', name: 'Mauritanie' },
+  { code: 'MU', name: 'Maurice' },
+  { code: 'YT', name: 'Mayotte' },
+  { code: 'MX', name: 'Mexique' },
+  { code: 'FM', name: 'Micronésie' },
+  { code: 'MD', name: 'Moldavie' },
+  { code: 'MC', name: 'Monaco' },
+  { code: 'MN', name: 'Mongolie' },
+  { code: 'ME', name: 'Monténégro' },
+  { code: 'MS', name: 'Montserrat' },
+  { code: 'MA', name: 'Maroc' },
+  { code: 'MZ', name: 'Mozambique' },
+  { code: 'MM', name: 'Myanmar' },
+  { code: 'NA', name: 'Namibie' },
+  { code: 'NR', name: 'Nauru' },
+  { code: 'NP', name: 'Népal' },
+  { code: 'NL', name: 'Pays-Bas' },
+  { code: 'NC', name: 'Nouvelle-Calédonie' },
+  { code: 'NZ', name: 'Nouvelle-Zélande' },
+  { code: 'NI', name: 'Nicaragua' },
+  { code: 'NE', name: 'Niger' },
+  { code: 'NG', name: 'Nigeria' },
+  { code: 'NU', name: 'Niue' },
+  { code: 'NF', name: 'Île Norfolk' },
+  { code: 'KP', name: 'Corée du Nord' },
+  { code: 'MK', name: 'Macédoine du Nord' },
+  { code: 'MP', name: 'Îles Mariannes du Nord' },
+  { code: 'NO', name: 'Norvège' },
+  { code: 'OM', name: 'Oman' },
+  { code: 'PK', name: 'Pakistan' },
+  { code: 'PW', name: 'Palaos' },
+  { code: 'PS', name: 'Palestine' },
+  { code: 'PA', name: 'Panama' },
+  { code: 'PG', name: 'Papouasie-Nouvelle-Guinée' },
+  { code: 'PY', name: 'Paraguay' },
+  { code: 'PE', name: 'Pérou' },
+  { code: 'PH', name: 'Philippines' },
+  { code: 'PL', name: 'Pologne' },
+  { code: 'PT', name: 'Portugal' },
+  { code: 'PR', name: 'Porto Rico' },
+  { code: 'QA', name: 'Qatar' },
+  { code: 'RE', name: 'Réunion' },
+  { code: 'RO', name: 'Roumanie' },
+  { code: 'RU', name: 'Russie' },
+  { code: 'RW', name: 'Rwanda' },
+  { code: 'BL', name: 'Saint-Barthélemy' },
+  { code: 'SH', name: 'Sainte-Hélène' },
+  { code: 'KN', name: 'Saint-Kitts-et-Nevis' },
+  { code: 'LC', name: 'Sainte-Lucie' },
+  { code: 'MF', name: 'Saint-Martin' },
+  { code: 'PM', name: 'Saint-Pierre-et-Miquelon' },
+  { code: 'VC', name: 'Saint-Vincent-et-les-Grenadines' },
+  { code: 'WS', name: 'Samoa' },
+  { code: 'SM', name: 'Saint-Marin' },
+  { code: 'ST', name: 'Sao Tomé-et-Principe' },
+  { code: 'SA', name: 'Arabie Saoudite' },
+  { code: 'SN', name: 'Sénégal' },
+  { code: 'RS', name: 'Serbie' },
+  { code: 'SC', name: 'Seychelles' },
+  { code: 'SL', name: 'Sierra Leone' },
+  { code: 'SG', name: 'Singapour' },
+  { code: 'SX', name: 'Saint-Martin (Pays-Bas)' },
+  { code: 'SK', name: 'Slovaquie' },
+  { code: 'SI', name: 'Slovénie' },
+  { code: 'SB', name: 'Îles Salomon' },
+  { code: 'SO', name: 'Somalie' },
+  { code: 'ZA', name: 'Afrique du Sud' },
+  { code: 'KR', name: 'Corée du Sud' },
+  { code: 'SS', name: 'Soudan du Sud' },
+  { code: 'ES', name: 'Espagne' },
+  { code: 'LK', name: 'Sri Lanka' },
+  { code: 'SD', name: 'Soudan' },
+  { code: 'SR', name: 'Suriname' },
+  { code: 'SJ', name: 'Svalbard et Jan Mayen' },
+  { code: 'SE', name: 'Suède' },
+  { code: 'CH', name: 'Suisse' },
+  { code: 'SY', name: 'Syrie' },
+  { code: 'TW', name: 'Taïwan' },
+  { code: 'TJ', name: 'Tadjikistan' },
+  { code: 'TZ', name: 'Tanzanie' },
+  { code: 'TH', name: 'Thaïlande' },
+  { code: 'TL', name: 'Timor-Leste' },
+  { code: 'TG', name: 'Togo' },
+  { code: 'TK', name: 'Tokelau' },
+  { code: 'TO', name: 'Tonga' },
+  { code: 'TT', name: 'Trinité-et-Tobago' },
+  { code: 'TN', name: 'Tunisie' },
+  { code: 'TR', name: 'Turquie' },
+  { code: 'TM', name: 'Turkménistan' },
+  { code: 'TC', name: 'Îles Turks-et-Caïcos' },
+  { code: 'TV', name: 'Tuvalu' },
+  { code: 'UG', name: 'Ouganda' },
+  { code: 'UA', name: 'Ukraine' },
+  { code: 'AE', name: 'Émirats arabes unis' },
+  { code: 'GB', name: 'Royaume-Uni' },
+  { code: 'US', name: 'États-Unis' },
+  { code: 'UY', name: 'Uruguay' },
+  { code: 'UZ', name: 'Ouzbékistan' },
+  { code: 'VU', name: 'Vanuatu' },
+  { code: 'VA', name: 'Vatican' },
+  { code: 'VE', name: 'Venezuela' },
+  { code: 'VN', name: 'Viêt Nam' },
+  { code: 'WF', name: 'Wallis-et-Futuna' },
+  { code: 'EH', name: 'Sahara occidental' },
+  { code: 'YE', name: 'Yémen' },
+  { code: 'ZM', name: 'Zambie' },
+  { code: 'ZW', name: 'Zimbabwe' }
+];
+
+  countries.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.code;
+    opt.textContent = `${c.code} - ${c.name}`;
+    sel.appendChild(opt);
+  });
+}
+
+    // Charger les types de dossier depuis le serveur
+    async function loadCaseTypes() {
+      const sel = document.getElementById('caseTypesSelect');
+      try {
+        const r = await fetch('/api/case-types');
+        const json = await r.json();
+        sel.innerHTML = '';
+        if (Array.isArray(json) && json.length) {
+          json.forEach(ct => {
+            const opt = document.createElement('option');
+            opt.value = ct.id; // correspond à caseTypeID attendu par Kleos
+            opt.textContent = ct.name;
+            sel.appendChild(opt);
+          });
+        } else {
+          sel.innerHTML = '<option value="">Aucun type disponible</option>';
+        }
+      } catch (e) {
+        sel.innerHTML = '<option value="">Erreur de chargement</option>';
+      }
+    }
+	
+    loadContactTypes();
+	loadCountries();
+	loadCaseTypes();
+
+    // Soumission du formulaire
+    document.getElementById('clientForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const fd = new FormData(form);
+
+      const resEl = document.getElementById('result');
+      resEl.textContent = 'Envoi en cours...';
+
+      try {
+        const r = await fetch('/api/submit-case', { method: 'POST', body: fd });
+        const json = await r.json();
+        resEl.textContent = JSON.stringify(json, null, 2);
+      } catch (err) {
+        resEl.textContent = 'Erreur: ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>

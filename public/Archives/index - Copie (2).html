@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Envoyer fiche client - Kleos uploader</title>
+  <style>
+    body { font-family: system-ui, Arial; padding: 20px; max-width: 720px; margin: auto; }
+    label { display:block; margin-top:10px; }
+    input, select { width:100%; padding:8px; margin-top:6px; box-sizing:border-box; }
+    .small { font-size:0.9em; color:#555; }
+    button { margin-top:12px; padding:10px 16px; }
+    .result { margin-top:12px; white-space:pre-wrap; background:#f4f4f4; padding:10px; border-radius:6px; }
+  </style>
+</head>
+<body>
+  <h1>Ouvrir un dossier & déposer des documents</h1>
+  <form id="clientForm" enctype="multipart/form-data">
+    <label>Nom <input name="nom" required/></label>
+    <label>Prénom <input name="prenom" required/></label>
+    <label>Email <input name="email" type="email"/></label>
+
+    <!-- Type de contact pour Kleos -->
+    <label>Type de contact
+      <select name="contactType" required>
+        <option value="N" selected>Personne physique (Natural)</option>
+        <option value="L">Personne morale (Legal)</option>
+      </select>
+    </label>
+
+    <!-- Adresse principale pour Kleos -->
+    <label>Rue <input name="street" value="Rue de Test 1" required/></label>
+    <label>Ville <input name="city" value="Bruxelles" required/></label>
+    <label>Code postal <input name="postalCode" value="1000" required/></label>
+    <label>Pays <input name="country" value="BE" required/></label>
+
+    <label>Type de dossier
+      <select name="typeDossier" id="caseTypesSelect" required>
+        <option value="">Chargement...</option>
+      </select>
+    </label>
+
+    <label>Documents à joindre <input type="file" name="documents" multiple/></label>
+    <button type="submit">Envoyer</button>
+  </form>
+
+  <div class="small">Important: les appels réels se font via le serveur (sécurité).</div>
+  <div class="result" id="result"></div>
+
+  <script>
+    async function loadCaseTypes() {
+      const sel = document.getElementById('caseTypesSelect');
+      try {
+        const r = await fetch('/api/case-types');
+        const json = await r.json();
+        sel.innerHTML = '';
+        if (Array.isArray(json) && json.length) {
+          json.forEach(ct => {
+            const opt = document.createElement('option');
+            opt.value = ct.id || ct.caseTypeID || ct.caseTypeId || ct.idExternal || ct.key || '';
+            opt.textContent = ct.name || ct.label || JSON.stringify(ct).slice(0,40);
+            sel.appendChild(opt);
+          });
+        } else {
+          sel.innerHTML = '<option value="">Aucun type disponible</option>';
+        }
+      } catch (e) {
+        sel.innerHTML = '<option value="">Erreur de chargement</option>';
+      }
+    }
+    loadCaseTypes();
+
+    document.getElementById('clientForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const fd = new FormData(form);
+      const resEl = document.getElementById('result');
+      resEl.textContent = 'Envoi en cours...';
+      try {
+        const r = await fetch('/api/submit-case', { method: 'POST', body: fd });
+        const json = await r.json();
+        resEl.textContent = JSON.stringify(json, null, 2);
+      } catch (err) {
+        resEl.textContent = 'Erreur: ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>

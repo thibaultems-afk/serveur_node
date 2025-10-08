@@ -1,0 +1,131 @@
+/* Assurer que le padding et border ne débordent pas */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Body */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f3f4f6;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
+/* Header général */
+header {
+  background-color: #111827; /* noir doux */
+  color: white;
+  text-align: center;
+  padding: 40px 20px;
+  font-size: 2rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+/* Form container (card) */
+form#clientForm {
+  background-color: #ffffff;
+  margin: 30px auto;
+  padding: 30px 25px;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  width: 90%;
+  max-width: 720px;
+}
+
+/* Section titles - dark */
+form#clientForm label.section-title {
+  display: block;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;            /* texte blanc */
+  background-color: #111827; /* fond noir */
+  padding: 12px 15px;
+  border-radius: 8px;
+  margin-top: 30px;
+}
+
+/* Labels généraux */
+label {
+  display: block;
+  margin-top: 20px;
+  font-weight: 500;
+}
+
+/* Champs généraux */
+input, select {
+  width: 100%;
+  padding: 12px 15px;
+  margin-top: 5px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.2s;
+  background-color: #ffffff;  /* fond blanc */
+  color: #111827;            /* texte noir */
+}
+
+input:focus, select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+  outline: none;
+}
+
+/* Bouton */
+button {
+  margin-top: 25px;
+  width: 100%;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background-color: #3b82f6;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+button:hover {
+  background-color: #2563eb;
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Result area */
+.result {
+  margin-top: 25px;
+  padding: 15px;
+  border-radius: 12px;
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  font-family: monospace;
+  white-space: pre-wrap;
+  color: #111827;
+}
+
+/* Helper text */
+.small {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-top: 15px;
+}
+
+/* Masquer dynamiques */
+.hidden {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+  form#clientForm {
+    padding: 20px;
+  }
+  input, select, button {
+    font-size: 0.95rem;
+  }
+}
